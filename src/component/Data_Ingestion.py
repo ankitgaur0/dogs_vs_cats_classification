@@ -40,40 +40,45 @@ class Data_Ingestion:
 
                 for image_name in os.listdir(path):
                     full_image_path=os.path.join(path,image_name)
-                    img=cv2.imread(full_image_path)
+                    img=cv2.imread(full_image_path,cv2.IMREAD_GRAYSCALE)
 
                     if img is not None:
                         new_img=cv2.resize(img,(self.image_size,self.image_size)) #resize the images of 70*70
                         #store the data into data list &store the label in the label list
                         data.append(new_img)
-                        data.append(image_label)
+                        labels.append(image_label)
             #converting the list to array
             data=np.array(data)
+            data=data/255
             labels=np.array(labels)
 
-            #now concate the data and labels so that can do spliting
-            full_data_array=np.c_[data,labels]
+            #now make the data full flaged
+            full_flaged_data=pd.DataFrame({
+                "Image_data":list(data),
+                "labels":labels
+
+            })
 
             #store the orinial datat to artifacts
-            row_artifacts_path=os.path.join(os.path.dirname(self.data_config_obj.raw_data_path))
+            row_artifacts_path=(os.path.dirname(self.data_config_obj.raw_data_path))
             #now make the artifacts folder
             os.makedirs(row_artifacts_path,exist_ok=True)
             
-            full_data_array.to_csv(self.data_config_obj.raw_data_path,index=False)
+            full_flaged_data.to_csv(self.data_config_obj.raw_data_path,index=False)
             logging.info("store the raw data successfully")
 
             #now spliting the array into trian and test data
-            train_data,test_data=train_test_split(full_data_array,test_data=0.20,random_state=42)
+            train_data,test_data=train_test_split(full_flaged_data,test_size=0.20,random_state=42)
 
             # store the train and test data in artifacts
-            train_data.to_csv(self.data_config_obj.train_data_path,index=False)
+            pd.DataFrame(train_data).to_csv(self.data_config_obj.train_data_path,index=False)
             logging.info("store the train_data in the artifacts completed")
-            test_data.to_csv(self.data_config_obj.test_data_path,index=False)
+            pd.DataFrame(test_data).to_csv(self.data_config_obj.test_data_path,index=False)
             logging.info("storing the test_data to artifacts is compeleted")
 
             return(
-                train_data,
-                test_data
+                pd.DataFrame(train_data),
+                pd.DataFrame(test_data)
             )
 
 
