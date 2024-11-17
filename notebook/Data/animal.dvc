@@ -1,0 +1,6 @@
+outs:
+- md5: 8ff7bddde2914440240a7469886cc001.dir
+  size: 377293123
+  nfiles: 1000
+  hash: md5
+  path: animal
